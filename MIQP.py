@@ -6,18 +6,12 @@ import numpy as np
 from tqdm import tqdm
 from sklearn import preprocessing
 
+from metrics import jaccard, precision, jaccard_sim
+# from basic import kMIQP
+from greedy import kMIQP
 # from gurobi import kMIQP
-from basic import kMIQP
 
-def jaccard_sim(a, b):
-  aa = set(a)
-  bb = set(b)
-  return len(aa & bb) / len(aa | bb)
-
-with open('res_ele_50.pkl', 'rb') as f:
-  res = pickle.load(f)
-  
-
+ 
 min_max_scaler = preprocessing.MinMaxScaler()
 def _preprocess(one_tuple):
   groundtruth, preds, scores = one_tuple
@@ -31,7 +25,7 @@ def _preprocess(one_tuple):
   return scores, M
 
 
-def _watch_log():
+def _watch_log(res):
   for one_tuple in res:
     r, M = _preprocess(one_tuple)
     vx, max_res = kMIQP(r, M, lamb=1.0, k=10, outputFlag=True)
@@ -39,7 +33,7 @@ def _watch_log():
     break
 
 
-def _watch_time_cost():
+def _watch_time_cost(res):
   start_time = time.time()
   T = 20
   for one_tuple in res[:T]:
@@ -50,10 +44,10 @@ def _watch_time_cost():
   print('User Per Second: %.4fs' % (cost_time / T))
 
 
-def _watch_converge():
+def _watch_converge(res):
   random.shuffle(res)
   tqdmInput = tqdm(res, ncols=77, leave=True)
-  corrs, jaccs = 0.0, 0.0
+  prec, jacc = 0.0, 0.0
   for iter, one_tuple in enumerate(tqdmInput):
     r, M = _preprocess(one_tuple)
     vx, max_res = kMIQP(r, M, lamb=1.0, k=10)
@@ -61,25 +55,14 @@ def _watch_converge():
     groundtruth, preds, scores = one_tuple
     preds = [preds[x] for x in vx]
 
-    corr = 0.0
-    grou = set(groundtruth)
-    for pred in preds:
-      corr = max(corr, len(set(pred).intersection(grou)) / 2)
-    assert(corr == 0.0 or corr == 0.5 or corr == 1.0)
-    corrs += corr
+    prec += precision(groundtruth, preds)
+    jacc += jaccard(preds)
 
-    jacc = 0.0
-    for i in range(len(preds)):
-      for j in range(i+1, len(preds)):
-        jacc += jaccard_sim(preds[i], preds[j])
-    jacc /= len(preds) * (len(preds) - 1) / 2
-    jaccs += jacc
-
-    tqdmInput.set_description('Prec@10: %.3f%% Div: %.3f%%'
-        % (corrs*100/(iter+1), jaccs*100/(iter+1)))
+    tqdmInput.set_description('Prec@10: %.3f%% Div: %.3f'
+        % (prec*100/(iter+1), jacc/(iter+1)))
 
 
-def reduce_by_kMIQP(save_path):
+def reduce_by_kMIQP(res, save_path=None):
   outputs = []
   for one_tuple in tqdm(res, ncols=77):
     r, M = _preprocess(one_tuple)
@@ -87,12 +70,27 @@ def reduce_by_kMIQP(save_path):
     groundtruth, preds, scores = one_tuple
     preds = [preds[x] for x in vx]
     outputs.append((groundtruth, preds, max_res))
-  with open(save_path, 'wb') as f:
-    pickle.dump(outputs, f, pickle.HIGHEST_PROTOCOL)
+  if save_path is None:
+    prec, jacc = 0.0, 0.0
+    for groundtruth, preds, scores in outputs:
+      jacc += jaccard(preds)
+      prec += precision(groundtruth, preds)
+    print('P@k: %.4f%%\tDiv: %.4f'
+        % (prec*100/len(outputs), jacc/len(outputs)))
+  else:
+    with open(save_path, 'wb') as f:
+      pickle.dump(outputs, f, pickle.HIGHEST_PROTOCOL)
 
 
 if __name__ == '__main__':
-  # _watch_log()
-  # _watch_time_cost()
-  _watch_converge()
-  # reduce_by_kMIQP('res_ele_10_MIQP.pkl')
+  # source_file = 'res_steam_50.pkl'
+  source_file = 'res_ele_50.pkl'
+  target_file = None
+  # target_file = 'res_steam_10_MIQP.pkl'
+  with open(source_file, 'rb') as f:
+    res = pickle.load(f)
+ 
+  # _watch_log(res)
+  # _watch_time_cost(res)
+  # _watch_converge(res)
+  reduce_by_kMIQP(res, target_file)
