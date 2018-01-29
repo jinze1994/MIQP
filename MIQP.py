@@ -7,8 +7,8 @@ from tqdm import tqdm
 from sklearn import preprocessing
 
 from metrics import jaccard, precision, jaccard_sim
-# from basic import kMIQP
-from greedy import kMIQP
+from basic import kMIQP
+# from greedy import kMIQP
 # from gurobi import kMIQP
 
  
@@ -64,9 +64,10 @@ def _watch_converge(res):
 
 def reduce_by_kMIQP(res, save_path=None):
   outputs = []
+  k = 5
   for one_tuple in tqdm(res, ncols=77):
     r, M = _preprocess(one_tuple)
-    vx, max_res = kMIQP(r, M, lamb=1.0, k=10)
+    vx, max_res = kMIQP(r, M, lamb=1.0, k=k)
     groundtruth, preds, scores = one_tuple
     preds = [preds[x] for x in vx]
     outputs.append((groundtruth, preds, max_res))
@@ -75,8 +76,8 @@ def reduce_by_kMIQP(res, save_path=None):
     for groundtruth, preds, scores in outputs:
       jacc += jaccard(preds)
       prec += precision(groundtruth, preds)
-    print('P@k: %.4f%%\tDiv: %.4f'
-        % (prec*100/len(outputs), jacc/len(outputs)))
+    print('P@%d: %.4f%%\tDiv: %.4f'
+        % (k, prec*100/len(outputs), jacc/len(outputs)))
   else:
     with open(save_path, 'wb') as f:
       pickle.dump(outputs, f, pickle.HIGHEST_PROTOCOL)
@@ -85,8 +86,9 @@ def reduce_by_kMIQP(res, save_path=None):
 if __name__ == '__main__':
   # source_file = 'res_steam_50.pkl'
   source_file = 'res_ele_50.pkl'
+  # source_file = 'res_clo_50.pkl'
   target_file = None
-  # target_file = 'res_steam_10_MIQP.pkl'
+  # target_file = 'res_ele_05_MIQP.pkl'
   with open(source_file, 'rb') as f:
     res = pickle.load(f)
  

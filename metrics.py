@@ -32,18 +32,21 @@ if __name__ == '__main__':
   # pkl_path = 'res_steam_50.pkl'
   # pkl_path = 'res_steam_10_MIQP.pkl'
 
-  pkl_path = 'res_ele_10_MIQP.pkl'
+  pkl_path = 'res_ele_05_MIQP.pkl'
+  # pkl_path = 'res_ele_10_MIQP.pkl'
   # pkl_path = 'res_ele_50.pkl'
+
+  # pkl_path = 'res_steam_bpr.pkl'
 
   with open(pkl_path, 'rb') as f:
     res = pickle.load(f)
 
-  limit = 10
+  limit = 5
   total = len(res)
   prec, jacc = 0.0, 0.0
   for groundtruth, preds, scores in res:
     preds = preds[:limit]
     jacc += jaccard(preds)
     prec += precision(groundtruth, preds)
-  print('%s\tP@k: %.4f%%\tDiv: %.4f'
-      % (pkl_path, prec*100/total, jacc/total))
+  print('%s\tP@%d: %.4f%%\tDiv: %.4f'
+      % (pkl_path, limit, prec*100/total, jacc/total))
