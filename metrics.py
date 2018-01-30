@@ -3,10 +3,12 @@ import pickle
 def jaccard_sim(a, b):
   aa = set(a)
   bb = set(b)
-  return len(aa & bb) / len(aa | bb)
+  aa, bb = aa&bb, aa|bb
+  return len(aa) / len(bb)
 
 def jaccard(preds):
   jac = 0.0
+  if len(preds) == 1: return jac
   for i in range(len(preds)):
     for j in range(i+1, len(preds)):
       jac += jaccard_sim(preds[i], preds[j])
