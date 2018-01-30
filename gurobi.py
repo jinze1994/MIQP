@@ -35,9 +35,17 @@ def kMIQP(r, M, lamb, k, mipGap=0.2, timeLimit=1.0, outputFlag=False):
   assert n == Q.shape[0] and n == Q.shape[1]
 
   m = Model("qp")
+  '''
   m.setParam('OutputFlag', outputFlag)
   m.setParam('TimeLimit', timeLimit)
   m.setParam('MIPGap', mipGap)
+  '''
+  m.Params.SimplexPricing=0
+  m.Params.BranchDir=1
+  m.Params.Heuristics=0
+  m.Params.VarBranch=0
+  m.Params.Cuts=0
+  m.Params.PreQLinearize=1
   xx = m.addVars(n, vtype=GRB.BINARY)
   x = np.array(xx.values())
   y = np.dot(r, x) - lamb*(x.T.dot(Q).dot(x))
