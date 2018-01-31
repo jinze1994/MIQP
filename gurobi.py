@@ -35,8 +35,8 @@ def kMIQP(r, M, lamb, k, mipGap=0.2, timeLimit=1.0, outputFlag=False):
   assert n == Q.shape[0] and n == Q.shape[1]
 
   m = Model("qp")
-  '''
   m.setParam('OutputFlag', outputFlag)
+  '''
   m.setParam('TimeLimit', timeLimit)
   m.setParam('MIPGap', mipGap)
   '''
