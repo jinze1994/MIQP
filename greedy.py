@@ -23,7 +23,6 @@ def kMIQP(r, M, lamb, k):
   for i in range(n):
     if i!=s:
       cost[i]=r[i]-lamb*Q[s][i]
-      
     else:
       cost[i]=np.NINF
       
@@ -37,12 +36,11 @@ def kMIQP(r, M, lamb, k):
     res+=maxim
     cost[tmp]=np.NINF
     mst.append(tmp)
-    
+
     for i in range(n):
-      if cost[i]!=np.NINF and r[i]-lamb*Q[tmp][i]>cost[i]:
-        cost[i]=r[i]-lamb*Q[tmp][i]
-  mst.sort()
-        
+      if cost[i] != np.NINF:
+        cost[i] += -lamb*Q[tmp][i]
+
   return mst,res
 
 
