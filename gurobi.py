@@ -40,12 +40,40 @@ def kMIQP(r, M, lamb, k, mipGap=0.2, timeLimit=1.0, outputFlag=False):
   m.setParam('TimeLimit', timeLimit)
   m.setParam('MIPGap', mipGap)
   '''
+
+  
+  '''
+  #ele
   m.Params.SimplexPricing=0
   m.Params.BranchDir=1
   m.Params.Heuristics=0
   m.Params.VarBranch=0
   m.Params.Cuts=0
   m.Params.PreQLinearize=1
+  '''
+
+  #steam
+  m.Params.NormAdjust=1
+  m.Params.PrePasses=8
+  
+
+
+  '''
+  #clo
+  m.Params.SimplexPricing=0
+  m.Params.DegenMoves=9
+  m.Params.Heuristics=0
+  m.Params.MIPFocus=1
+  m.Params.Cuts=0
+  m.Params.FlowCoverCuts=2
+  m.Params.GomoryPasses=15
+  m.Params.PreQLinearize=1
+  m.Params.PrePasses=5
+  '''
+  
+  
+
+
   xx = m.addVars(n, vtype=GRB.BINARY)
   x = np.array(xx.values())
   y = np.dot(r, x) - lamb*(x.T.dot(Q).dot(x))
