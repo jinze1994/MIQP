@@ -39,7 +39,7 @@ def kMIQP(r, M, lamb, k):
 
     for i in range(n):
       if cost[i] != np.NINF:
-        cost[i] += -lamb*Q[tmp][i]
+        cost[i] += -lamb*(Q[tmp][i]+Q[i][tmp])
 
   return mst,res
 
